@@ -204,6 +204,14 @@
     // Add event listener for the final area filter
     document.getElementById('areaFilter').addEventListener('change', filterData);
     document.addEventListener('DOMContentLoaded', fetchProperties);
+
+    //To refresh page
+    document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    console.log("Welcome back! Refreshing property data...");
+    fetchProperties(); // This calls your existing function to get fresh data
+  }
+});    
 </script>
 </body>
 </html>
