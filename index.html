@@ -131,26 +131,27 @@
         filterData();
     }
 
-    function filterData() {
-        const state = document.getElementById('stateFilter').value;
-        const city = document.getElementById('cityFilter').value;
-        const area = document.getElementById('areaFilter').value;
-        const grid = document.getElementById('propertyGrid');
+   function filterData() {
+    const state = document.getElementById('stateFilter').value;
+    const city = document.getElementById('cityFilter').value;
+    const area = document.getElementById('areaFilter').value;
+    const grid = document.getElementById('propertyGrid');
 
-        // Logic: Only show cards if at least a State is selected
-        if (!state && !city && !area) {
-            grid.innerHTML = '<p class="col-span-full text-center text-gray-400 py-12">Please select a location to view available properties.</p>';
-            return;
-        }
-
-        const filtered = propertiesData.filter(item => {
-            return (!state || item.State === state) &&
-                   (!city || item.City === city) &&
-                   (!area || item.Area === area);
-        });
-        
-        renderProperties(filtered);
+    // STRICT LOGIC: All three selections must be made to show cards
+    if (!state || !city || !area) {
+        grid.innerHTML = '<p class="col-span-full text-center text-gray-400 py-12">Please select State, City, AND Area to view properties.</p>';
+        return;
     }
+
+    // If we reach here, it means all 3 filters are selected
+    const filtered = propertiesData.filter(item => {
+        return item.State === state &&
+               item.City === city &&
+               item.Area === area;
+    });
+    
+    renderProperties(filtered);
+}
 
     function renderProperties(items) {
         const grid = document.getElementById('propertyGrid');
