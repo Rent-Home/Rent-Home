@@ -186,23 +186,31 @@ function initFilters() {
     const area = document.getElementById('areaFilter').value;
     const propType = document.getElementById('typeFilter').value;
     const listType = document.getElementById('listingFilter').value;
-    const bhkType = document.getElementById('bhkFilter').value;
+    const bhkFilter = document.getElementById('bhkFilter');
+    const bhkType = bhkFilter.value;
     
     const grid = document.getElementById('propertyGrid');
 
-    // Strict check: No results unless all 6 filters are picked
-    if (!state || !city || !area || !propType || !listType || !bhkType) {
-        grid.innerHTML = '<p class="col-span-full text-center text-gray-400 py-12">Please select ALL filters (Location & Requirements) to view properties.</p>';
+    // NEW LOGIC: 
+    // We check if BHK is required. If propType is Shop/Plot, BHK is NOT required.
+    const isBhkRequired = !(propType.toLowerCase().trim() === "shop" || propType.toLowerCase().trim() === "plot");
+
+    // STRICT CHECK: 
+    // If Location/Type/Purpose are missing OR (BHK is required but missing)
+    if (!state || !city || !area || !propType || !listType || (isBhkRequired && !bhkType)) {
+        grid.innerHTML = '<p class="col-span-full text-center text-gray-400 py-12">Please select all filters to view properties.</p>';
         return;
     }
 
+    // Filter the data
     const filtered = propertiesData.filter(item => {
-        return item.State === state &&
-               item.City === city &&
-               item.Area === area &&
-               item.PropertyType === propType &&
-               item.ListingType === listType &&
-               item.BHK === bhkType;
+        const matchesLocation = item.State === state && item.City === city && item.Area === area;
+        const matchesType = item.PropertyType === propType && item.ListingType === listType;
+        
+        // If it's a Shop/Plot, we don't care about the BHK value in the filter
+        const matchesBhk = isBhkRequired ? (item.BHK === bhkType) : true;
+
+        return matchesLocation && matchesType && matchesBhk;
     });
     
     renderProperties(filtered);
