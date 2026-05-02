@@ -217,7 +217,7 @@ function initFilters() {
     renderProperties(filtered);
 }
 //-------------------------------------------------------------------------------
-   function renderProperties(items) {
+  function renderProperties(items) {
     const grid = document.getElementById('propertyGrid');
     grid.innerHTML = '';
     
@@ -227,7 +227,7 @@ function initFilters() {
     }
 
     items.forEach(p => {
-        // --- KEEPING YOUR ORIGINAL YOUTUBE LOGIC ---
+        // 1. YouTube Logic (Kept exactly as per your original)
         let videoId = "";
         try {
             if (p.YouTubeLink.includes('v=')) {
@@ -237,11 +237,25 @@ function initFilters() {
             }
         } catch(e) { videoId = ""; }
 
-        // --- NEW PRICE & SERIAL LOGIC ---
-        const formattedPrice = Number(p.Price || 0).toLocaleString('en-IN');
+        // 2. Price Translator (Handles 50L, 10k, etc. for user ease)
+        const rawPrice = String(p.Price || "0").toLowerCase().trim();
+        let displayPrice = "";
+
+        if (rawPrice.includes('k')) {
+            displayPrice = parseFloat(rawPrice) + " Thousand";
+        } else if (rawPrice.includes('l')) {
+            displayPrice = parseFloat(rawPrice) + " Lakh";
+        } else if (rawPrice.includes('cr')) {
+            displayPrice = parseFloat(rawPrice) + " Crore";
+        } else {
+            // Formats standard numbers with Indian commas
+            displayPrice = Number(rawPrice).toLocaleString('en-IN');
+        }
+
+        // 3. Logic for Rent vs Buy labels
         const isRent = (p.ListingType || '').toLowerCase().trim() === 'rent';
         const priceLabel = isRent ? ' / month' : ' (Full Price)';
-        const serialNo = p.SNo || "N/A"; // Matches the new column in your sheet
+        const serialNo = p.SNo || "N/A"; 
 
         const card = document.createElement('div');
         card.className = "bg-white rounded-xl shadow-md overflow-hidden flex flex-col border border-gray-100 transform hover:shadow-lg transition duration-300 relative";
@@ -252,7 +266,7 @@ function initFilters() {
                     frameborder="0" allowfullscreen></iframe>
                 
                 <div class="absolute top-3 right-3 bg-red-600 text-white text-[10px] font-extrabold px-3 py-1 rounded shadow z-10">
-                    ₹${formattedPrice}${priceLabel}
+                    ₹${displayPrice}${priceLabel}
                 </div>
 
                 <div class="absolute top-3 left-3 flex flex-col gap-2">
@@ -273,7 +287,7 @@ function initFilters() {
                         </span>
                     </div>
                     
-                    <h3 class="font-black text-2xl text-gray-900 mt-1 leading-tight">Real Estate</h3>
+                    <h2 class="font-black text-2xl text-gray-900 mt-1 leading-tight">Real Estate</h2>
                     
                     <p class="text-sm text-gray-600 mt-2 font-medium"> 
                         Service Fee: <span class="font-extrabold text-green-600">₹2,000 only</span>
@@ -281,7 +295,7 @@ function initFilters() {
                 </div>
 
                 <div class="mt-auto pt-5">
-                    <a href="https://wa.me/91${p.ContactNumber}?text=Hi, I am interested in Property ID #${serialNo} (${p.BHK} ${p.PropertyType} in ${p.Area}) listed at ₹${formattedPrice}." 
+                    <a href="https://wa.me/91${p.ContactNumber}?text=Hi, I am interested in Property ID #${serialNo} (${p.BHK} ${p.PropertyType} in ${p.Area}) listed at ₹${displayPrice}." 
                         target="_blank" class="block text-center w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200 shadow-sm">
                         <i class="fab fa-whatsapp mr-1"></i> Contact Me
                     </a>
@@ -291,18 +305,6 @@ function initFilters() {
         grid.appendChild(card);
     });
 }
-
-// --- KEEPING YOUR ORIGINAL EVENT LISTENERS ---
-document.getElementById('areaFilter').addEventListener('change', filterData);
-document.addEventListener('DOMContentLoaded', fetchProperties);
-
-// --- KEEPING YOUR ORIGINAL REFRESH LOGIC ---
-document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible") {
-        console.log("Welcome back! Refreshing property data...");
-        fetchProperties(); 
-    }
-});
     
  //----------------------------------------------------------------------------------------------------------------------       
         //when shop/plot selected disable the BHK filter
@@ -325,6 +327,30 @@ document.addEventListener("visibilitychange", () => {
 
     filterData();
 }
+
+        //Refresh page logic
+        // 1. Initial Load when the page first opens
+document.addEventListener('DOMContentLoaded', fetchProperties);
+
+// 2. Filter Trigger - When user changes the last filter
+const areaFilter = document.getElementById('areaFilter');
+if(areaFilter) {
+    areaFilter.addEventListener('change', filterData);
+}
+
+// 3. Smart Refresh - Only refreshes if they've been away for more than 30 seconds
+let lastFetchTime = Date.now();
+
+document.addEventListener("visibilitychange", () => {
+    const now = Date.now();
+    // Only refresh if more than 30 seconds have passed (30000 milliseconds)
+    if (document.visibilityState === "visible" && (now - lastFetchTime) > 30000) {
+        console.log("Refreshing data to ensure availability...");
+        fetchProperties(); 
+        lastFetchTime = now;
+    }
+});
+        
 </script>
 </body>
 </html>
