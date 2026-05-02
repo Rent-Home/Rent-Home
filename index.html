@@ -105,31 +105,36 @@
         }
     }
 
-  
+  //---------------------------------------------------------------------------------------------
         // This function now pulls ALL filter options from your sheet automatically
 function initFilters() {
-    const stateSelect = document.getElementById('stateFilter');
-    const typeSelect = document.getElementById('typeFilter');
-    const listingSelect = document.getElementById('listingFilter');
-    const bhkSelect = document.getElementById('bhkFilter');
+    const populateUnique = (selectId, fieldName) => {
+        const select = document.getElementById(selectId);
+        if (!select) return;
 
-    // Helper to extract unique values and populate dropdowns
-    const populateUnique = (selectElement, fieldName) => {
-        const uniqueValues = [...new Set(propertiesData.map(item => item[fieldName]))].filter(v => v).sort();
+        // Clear existing options to prevent duplicates on refresh
+        const firstOptionText = select.options[0].text;
+        select.innerHTML = `<option value="">${firstOptionText}</option>`;
+
+        // Get unique values, remove empty ones, and sort alphabetically
+        const uniqueValues = [...new Set(propertiesData.map(item => String(item[fieldName] || '').trim()))]
+            .filter(v => v !== "")
+            .sort();
+
         uniqueValues.forEach(val => {
             const opt = document.createElement('option');
             opt.value = val;
             opt.textContent = val;
-            selectElement.appendChild(opt);
+            select.appendChild(opt);
         });
     };
 
-    populateUnique(stateSelect, 'State');
-    populateUnique(typeSelect, 'PropertyType');
-    populateUnique(listingSelect, 'ListingType');
-    populateUnique(bhkSelect, 'BHK');
+    populateUnique('stateFilter', 'State');
+    populateUnique('typeFilter', 'PropertyType');
+    populateUnique('listingFilter', 'ListingType');
+    populateUnique('bhkFilter', 'BHK');
 }
-
+//----------------------------------------------------------------------------------
     function populateCities() {
         const selectedState = document.getElementById('stateFilter').value;
         const citySelect = document.getElementById('cityFilter');
@@ -152,7 +157,7 @@ function initFilters() {
         }
         filterData();
     }
-
+//------------------------------------------------------------------------------
     function populateAreas() {
         const selectedState = document.getElementById('stateFilter').value;
         const selectedCity = document.getElementById('cityFilter').value;
@@ -276,15 +281,19 @@ function initFilters() {
     const propType = document.getElementById('typeFilter').value;
     const bhkFilter = document.getElementById('bhkFilter');
 
-    // Logic for disabling BHK if Plot/Shop is selected
-    if (propType === "Plot" || propType === "Shop") {
+    // Convert to lowercase and trim spaces to avoid case-sensitivity issues
+    const selectedType = propType.toLowerCase().trim();
+
+    if (selectedType === "shop" || selectedType === "plot") {
         bhkFilter.value = "N/A"; 
         bhkFilter.disabled = true;
-        bhkFilter.classList.add('bg-gray-100', 'cursor-not-allowed');
+        bhkFilter.classList.add('bg-gray-100', 'cursor-not-allowed', 'opacity-50');
     } else {
         bhkFilter.disabled = false;
-        bhkFilter.classList.remove('bg-gray-100', 'cursor-not-allowed');
+        if (bhkFilter.value === "N/A") bhkFilter.value = "";
+        bhkFilter.classList.remove('bg-gray-100', 'cursor-not-allowed', 'opacity-50');
     }
+
     filterData();
 }
 </script>
