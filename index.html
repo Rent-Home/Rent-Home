@@ -191,23 +191,24 @@ function initFilters() {
     
     const grid = document.getElementById('propertyGrid');
 
-    // NEW LOGIC: 
-    // We check if BHK is required. If propType is Shop/Plot, BHK is NOT required.
+    // Logic to check if BHK is required (Disabled for Shop/Plot)
     const isBhkRequired = !(propType.toLowerCase().trim() === "shop" || propType.toLowerCase().trim() === "plot");
 
-    // STRICT CHECK: 
-    // If Location/Type/Purpose are missing OR (BHK is required but missing)
+    // Strict validation: Don't show results until filters are picked
     if (!state || !city || !area || !propType || !listType || (isBhkRequired && !bhkType)) {
         grid.innerHTML = '<p class="col-span-full text-center text-gray-400 py-12">Please select all filters to view properties.</p>';
         return;
     }
 
-    // Filter the data
     const filtered = propertiesData.filter(item => {
+        // NEW: Status Check
+        // Only show if status is exactly "Available" (case-insensitive)
+        const isAvailable = item.Status && item.Status.toLowerCase().trim() === "available";
+        if (!isAvailable) return false;
+
+        // Existing Filters
         const matchesLocation = item.State === state && item.City === city && item.Area === area;
         const matchesType = item.PropertyType === propType && item.ListingType === listType;
-        
-        // If it's a Shop/Plot, we don't care about the BHK value in the filter
         const matchesBhk = isBhkRequired ? (item.BHK === bhkType) : true;
 
         return matchesLocation && matchesType && matchesBhk;
@@ -216,7 +217,7 @@ function initFilters() {
     renderProperties(filtered);
 }
 //-------------------------------------------------------------------------------
-    function renderProperties(items) {
+   function renderProperties(items) {
     const grid = document.getElementById('propertyGrid');
     grid.innerHTML = '';
     
@@ -226,6 +227,7 @@ function initFilters() {
     }
 
     items.forEach(p => {
+        // --- KEEPING YOUR ORIGINAL YOUTUBE LOGIC ---
         let videoId = "";
         try {
             if (p.YouTubeLink.includes('v=')) {
@@ -235,55 +237,74 @@ function initFilters() {
             }
         } catch(e) { videoId = ""; }
 
+        // --- NEW PRICE & SERIAL LOGIC ---
+        const formattedPrice = Number(p.Price || 0).toLocaleString('en-IN');
+        const isRent = (p.ListingType || '').toLowerCase().trim() === 'rent';
+        const priceLabel = isRent ? ' / month' : ' (Full Price)';
+        const serialNo = p.SNo || "N/A"; // Matches the new column in your sheet
+
         const card = document.createElement('div');
-        card.className = "bg-white rounded-xl shadow-md overflow-hidden flex flex-col border border-gray-100 transform hover:shadow-lg transition duration-300";
+        card.className = "bg-white rounded-xl shadow-md overflow-hidden flex flex-col border border-gray-100 transform hover:shadow-lg transition duration-300 relative";
         
-        // NEW: Added dynamic labels for Listing Type and BHK in the card UI
         card.innerHTML = `
             <div class="h-56 bg-gray-200 relative">
                 <iframe class="w-full h-full" src="https://www.youtube.com/embed/${videoId}" 
                     frameborder="0" allowfullscreen></iframe>
+                
+                <div class="absolute top-3 right-3 bg-red-600 text-white text-[10px] font-extrabold px-3 py-1 rounded shadow z-10">
+                    ₹${formattedPrice}${priceLabel}
+                </div>
+
                 <div class="absolute top-3 left-3 flex flex-col gap-2">
                     <span class="bg-black/60 text-white text-[10px] px-2 py-1 rounded backdrop-blur-md uppercase font-bold">
                         ${p.ListingType || 'Property'}
                     </span>
                 </div>
-                <span class="absolute top-3 right-3 bg-red-600 text-white text-xs font-extrabold px-3 py-1 rounded shadow">
-                    Save ₹14,000+
-                </span>
             </div>
+
             <div class="p-5 flex flex-col flex-grow">
                 <div>
                     <div class="flex justify-between items-start">
-                        <span class="text-xs text-red-600 font-bold uppercase tracking-wider">${p.Area}, ${p.City}</span>
-                        <span class="text-xs font-bold bg-gray-100 px-2 py-1 rounded">${p.BHK || ''} ${p.PropertyType || ''}</span>
+                        <span class="text-[10px] text-red-600 font-bold uppercase tracking-wider">
+                            ${p.Area}, ${p.City} <span class="text-gray-400 font-normal">#${serialNo}</span>
+                        </span>
+                        <span class="text-[10px] font-bold bg-gray-100 px-2 py-1 rounded">
+                            ${p.BHK || ''} ${p.PropertyType || ''}
+                        </span>
                     </div>
-                    <h3 class="font-bold text-lg text-gray-800 mt-1">${p.State} Real Estate</h3>
-                    <p class="text-sm text-gray-600 mt-2"> Fee: <span class="font-extrabold text-green-600">₹2,000 only</span></p>
+                    
+                    <h3 class="font-black text-2xl text-gray-900 mt-1 leading-tight">Real Estate</h3>
+                    
+                    <p class="text-sm text-gray-600 mt-2 font-medium"> 
+                        Service Fee: <span class="font-extrabold text-green-600">₹2,000 only</span>
+                    </p>
                 </div>
+
                 <div class="mt-auto pt-5">
-                    <a href="https://wa.me/91${p.ContactNumber}?text=Hi, I am interested in the ${p.BHK} ${p.PropertyType} for ${p.ListingType} in ${p.Area}." 
+                    <a href="https://wa.me/91${p.ContactNumber}?text=Hi, I am interested in Property ID #${serialNo} (${p.BHK} ${p.PropertyType} in ${p.Area}) listed at ₹${formattedPrice}." 
                         target="_blank" class="block text-center w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200 shadow-sm">
-                        Contact Me
+                        <i class="fab fa-whatsapp mr-1"></i> Contact Me
                     </a>
                 </div>
             </div>
         `;
         grid.appendChild(card);
     });
+}
+
+// --- KEEPING YOUR ORIGINAL EVENT LISTENERS ---
+document.getElementById('areaFilter').addEventListener('change', filterData);
+document.addEventListener('DOMContentLoaded', fetchProperties);
+
+// --- KEEPING YOUR ORIGINAL REFRESH LOGIC ---
+document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+        console.log("Welcome back! Refreshing property data...");
+        fetchProperties(); 
     }
-
-    // Add event listener for the final area filter
-    document.getElementById('areaFilter').addEventListener('change', filterData);
-    document.addEventListener('DOMContentLoaded', fetchProperties);
-
-    //To refresh page
-    document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") {
-    console.log("Welcome back! Refreshing property data...");
-    fetchProperties(); // This calls your existing function to get fresh data
-  }
-});  
+});
+    
+ //----------------------------------------------------------------------------------------------------------------------       
         //when shop/plot selected disable the BHK filter
        function handleTypeChange() {
     const propType = document.getElementById('typeFilter').value;
