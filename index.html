@@ -217,7 +217,95 @@ function initFilters() {
     renderProperties(filtered);
 }
 //-------------------------------------------------------------------------------
-  function renderProperties(items) {
+//   function renderProperties(items) {
+//     const grid = document.getElementById('propertyGrid');
+//     grid.innerHTML = '';
+    
+//     if (items.length === 0) {
+//         grid.innerHTML = '<p class="col-span-full text-center text-gray-500 py-12">No properties found matching these specific filters.</p>';
+//         return;
+//     }
+
+//     items.forEach(p => {
+//         // 1. YouTube Logic (Kept exactly as per your original)
+//         let videoId = "";
+//         try {
+//             if (p.YouTubeLink.includes('v=')) {
+//                 videoId = p.YouTubeLink.split('v=')[1].split('&')[0];
+//             } else {
+//                 videoId = p.YouTubeLink.split('/').pop();
+//             }
+//         } catch(e) { videoId = ""; }
+
+//         // 2. Price Translator (Handles 50L, 10k, etc. for user ease)
+//         const rawPrice = String(p.Price || "0").toLowerCase().trim();
+//         let displayPrice = "";
+
+//         if (rawPrice.includes('k')) {
+//             displayPrice = parseFloat(rawPrice) + " Thousand";
+//         } else if (rawPrice.includes('l')) {
+//             displayPrice = parseFloat(rawPrice) + " Lakh";
+//         } else if (rawPrice.includes('cr')) {
+//             displayPrice = parseFloat(rawPrice) + " Crore";
+//         } else {
+//             // Formats standard numbers with Indian commas
+//             displayPrice = Number(rawPrice).toLocaleString('en-IN');
+//         }
+
+//         // 3. Logic for Rent vs Buy labels
+//         const isRent = (p.ListingType || '').toLowerCase().trim() === 'rent';
+//         const priceLabel = isRent ? ' / month' : ' (Full Price)';
+//         const serialNo = p.SNo || "N/A"; 
+
+//         const card = document.createElement('div');
+//         card.className = "bg-white rounded-xl shadow-md overflow-hidden flex flex-col border border-gray-100 transform hover:shadow-lg transition duration-300 relative";
+        
+//         card.innerHTML = `
+//             <div class="h-56 bg-gray-200 relative">
+//                 <iframe class="w-full h-full" src="https://www.youtube.com/embed/${videoId}" 
+//                     frameborder="0" allowfullscreen></iframe>
+                
+//                 <div class="absolute top-3 right-3 bg-red-600 text-white text-[10px] font-extrabold px-3 py-1 rounded shadow z-10">
+//                     ₹${displayPrice}${priceLabel}
+//                 </div>
+
+//                 <div class="absolute top-3 left-3 flex flex-col gap-2">
+//                     <span class="bg-black/60 text-white text-[10px] px-2 py-1 rounded backdrop-blur-md uppercase font-bold">
+//                         ${p.ListingType || 'Property'}
+//                     </span>
+//                 </div>
+//             </div>
+
+//             <div class="p-5 flex flex-col flex-grow">
+//                 <div>
+//                     <div class="flex justify-between items-start">
+//                         <span class="text-[10px] text-red-600 font-bold uppercase tracking-wider">
+//                             ${p.Area}, ${p.City} <span class="text-gray-400 font-normal">#${serialNo}</span>
+//                         </span>
+//                         <span class="text-[10px] font-bold bg-gray-100 px-2 py-1 rounded">
+//                             ${p.BHK || ''} ${p.PropertyType || ''}
+//                         </span>
+//                     </div>
+                    
+//                     <h2 class="font-black text-2xl text-gray-900 mt-1 leading-tight">Real Estate</h2>
+                    
+//                     <p class="text-sm text-gray-600 mt-2 font-medium"> 
+//                         Service Fee: <span class="font-extrabold text-green-600">₹2,000 only</span>
+//                     </p>
+//                 </div>
+
+//                 <div class="mt-auto pt-5">
+//                     <a href="https://wa.me/91${p.ContactNumber}?text=Hi, I am interested in Property ID #${serialNo} (${p.BHK} ${p.PropertyType} in ${p.Area}) listed at ₹${displayPrice}." 
+//                         target="_blank" class="block text-center w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200 shadow-sm">
+//                         <i class="fab fa-whatsapp mr-1"></i> Contact Me
+//                     </a>
+//                 </div>
+//             </div>
+//         `;
+//         grid.appendChild(card);
+//     });
+// }
+    function renderProperties(items) {
     const grid = document.getElementById('propertyGrid');
     grid.innerHTML = '';
     
@@ -227,7 +315,7 @@ function initFilters() {
     }
 
     items.forEach(p => {
-        // 1. YouTube Logic (Kept exactly as per your original)
+        // 1. YouTube Logic
         let videoId = "";
         try {
             if (p.YouTubeLink.includes('v=')) {
@@ -237,25 +325,21 @@ function initFilters() {
             }
         } catch(e) { videoId = ""; }
 
-        // 2. Price Translator (Handles 50L, 10k, etc. for user ease)
+        // 2. Price Translator (Handles 50L, 10k, etc.)
         const rawPrice = String(p.Price || "0").toLowerCase().trim();
         let displayPrice = "";
+        if (rawPrice.includes('k')) displayPrice = parseFloat(rawPrice) + " Thousand";
+        else if (rawPrice.includes('l')) displayPrice = parseFloat(rawPrice) + " Lakh";
+        else if (rawPrice.includes('cr')) displayPrice = parseFloat(rawPrice) + " Crore";
+        else displayPrice = Number(rawPrice).toLocaleString('en-IN');
 
-        if (rawPrice.includes('k')) {
-            displayPrice = parseFloat(rawPrice) + " Thousand";
-        } else if (rawPrice.includes('l')) {
-            displayPrice = parseFloat(rawPrice) + " Lakh";
-        } else if (rawPrice.includes('cr')) {
-            displayPrice = parseFloat(rawPrice) + " Crore";
-        } else {
-            // Formats standard numbers with Indian commas
-            displayPrice = Number(rawPrice).toLocaleString('en-IN');
-        }
-
-        // 3. Logic for Rent vs Buy labels
         const isRent = (p.ListingType || '').toLowerCase().trim() === 'rent';
         const priceLabel = isRent ? ' / month' : ' (Full Price)';
-        const serialNo = p.SNo || "N/A"; 
+        const serialNo = p.SNo || p.ID || "N/A"; 
+
+        // 3. WhatsApp Message (Includes Price now)
+        const messageText = `Hi! I am interested in Property ID: #${serialNo}. Details: ${p.BHK} ${p.PropertyType} in ${p.Area} listed at ₹${displayPrice}${priceLabel}.`;
+        const encodedMsg = encodeURIComponent(messageText);
 
         const card = document.createElement('div');
         card.className = "bg-white rounded-xl shadow-md overflow-hidden flex flex-col border border-gray-100 transform hover:shadow-lg transition duration-300 relative";
@@ -295,7 +379,7 @@ function initFilters() {
                 </div>
 
                 <div class="mt-auto pt-5">
-                    <a href="https://wa.me/91${p.ContactNumber}?text=Hi, I am interested in Property ID #${serialNo} (${p.BHK} ${p.PropertyType} in ${p.Area}) listed at ₹${displayPrice}." 
+                    <a href="https://wa.me/91${p.ContactNumber}?text=${encodedMsg}" 
                         target="_blank" class="block text-center w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200 shadow-sm">
                         <i class="fab fa-whatsapp mr-1"></i> Contact Me
                     </a>
@@ -305,7 +389,6 @@ function initFilters() {
         grid.appendChild(card);
     });
 }
-    
  //----------------------------------------------------------------------------------------------------------------------       
         //when shop/plot selected disable the BHK filter
        function handleTypeChange() {
