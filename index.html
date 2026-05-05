@@ -108,19 +108,47 @@
 
   //---------------------------------------------------------------------------------------------
         // This function now pulls ALL filter options from your sheet automatically
+// function initFilters() {
+//     const populateUnique = (selectId, fieldName) => {
+//         const select = document.getElementById(selectId);
+//         if (!select) return;
+
+//         // Clear existing options to prevent duplicates on refresh
+//         const firstOptionText = select.options[0].text;
+//         select.innerHTML = `<option value="">${firstOptionText}</option>`;
+
+//         // Get unique values, remove empty ones, and sort alphabetically
+//         const uniqueValues = [...new Set(propertiesData.map(item => String(item[fieldName] || '').trim()))]
+//             .filter(v => v !== "")
+//             .sort();
+
+//         uniqueValues.forEach(val => {
+//             const opt = document.createElement('option');
+//             opt.value = val;
+//             opt.textContent = val;
+//             select.appendChild(opt);
+//         });
+//     };
+
+//     populateUnique('stateFilter', 'State');
+//     populateUnique('typeFilter', 'PropertyType');
+//     populateUnique('listingFilter', 'ListingType');
+//     populateUnique('bhkFilter', 'BHK');
+// }
+        // 1. Initializer: Only populates top-level filters
 function initFilters() {
     const populateUnique = (selectId, fieldName) => {
         const select = document.getElementById(selectId);
         if (!select) return;
 
-        // Clear existing options to prevent duplicates on refresh
+        // Reset to placeholder
         const firstOptionText = select.options[0].text;
         select.innerHTML = `<option value="">${firstOptionText}</option>`;
 
-        // Get unique values, remove empty ones, and sort alphabetically
-        const uniqueValues = [...new Set(propertiesData.map(item => String(item[fieldName] || '').trim()))]
-            .filter(v => v !== "")
-            .sort();
+        // Get unique values, trim spaces, remove empties, and sort
+        const uniqueValues = [...new Set(propertiesData.map(item => 
+            item[fieldName] ? String(item[fieldName]).trim() : ""
+        ))].filter(v => v !== "").sort();
 
         uniqueValues.forEach(val => {
             const opt = document.createElement('option');
@@ -130,56 +158,108 @@ function initFilters() {
         });
     };
 
+    // Populate only the independent filters
     populateUnique('stateFilter', 'State');
     populateUnique('typeFilter', 'PropertyType');
     populateUnique('listingFilter', 'ListingType');
     populateUnique('bhkFilter', 'BHK');
 }
 //----------------------------------------------------------------------------------
-    function populateCities() {
-        const selectedState = document.getElementById('stateFilter').value;
-        const citySelect = document.getElementById('cityFilter');
-        const areaSelect = document.getElementById('areaFilter');
+    // function populateCities() {
+    //     const selectedState = document.getElementById('stateFilter').value;
+    //     const citySelect = document.getElementById('cityFilter');
+    //     const areaSelect = document.getElementById('areaFilter');
         
-        citySelect.innerHTML = '<option value="">Choose City</option>';
-        areaSelect.innerHTML = '<option value="">Choose Area</option>';
+    //     citySelect.innerHTML = '<option value="">Choose City</option>';
+    //     areaSelect.innerHTML = '<option value="">Choose Area</option>';
         
-        if (selectedState) {
-            const filteredCities = [...new Set(propertiesData
-                .filter(item => item.State === selectedState)
-                .map(item => item.City))].sort();
+    //     if (selectedState) {
+    //         const filteredCities = [...new Set(propertiesData
+    //             .filter(item => item.State === selectedState)
+    //             .map(item => item.City))].sort();
                 
-            filteredCities.forEach(city => {
-                const opt = document.createElement('option');
-                opt.value = city;
-                opt.textContent = city;
-                citySelect.appendChild(opt);
-            });
-        }
-        filterData();
+    //         filteredCities.forEach(city => {
+    //             const opt = document.createElement('option');
+    //             opt.value = city;
+    //             opt.textContent = city;
+    //             citySelect.appendChild(opt);
+    //         });
+    //     }
+    //     filterData();
+    // }
+        / 2. City Logic: Triggered when State changes
+function populateCities() {
+    const stateVal = document.getElementById('stateFilter').value.trim();
+    const citySelect = document.getElementById('cityFilter');
+    const areaSelect = document.getElementById('areaFilter');
+    
+    // Always reset children when parent changes
+    citySelect.innerHTML = '<option value="">Choose City</option>';
+    areaSelect.innerHTML = '<option value="">Choose Area</option>';
+    
+    if (stateVal) {
+        const filteredCities = [...new Set(propertiesData
+            .filter(item => item.State && String(item.State).trim() === stateVal)
+            .map(item => String(item.City || '').trim())
+        )].filter(v => v !== "").sort();
+            
+        filteredCities.forEach(city => {
+            const opt = document.createElement('option');
+            opt.value = city;
+            opt.textContent = city;
+            citySelect.appendChild(opt);
+        });
     }
+    filterData();
+}
 //------------------------------------------------------------------------------
-    function populateAreas() {
-        const selectedState = document.getElementById('stateFilter').value;
-        const selectedCity = document.getElementById('cityFilter').value;
-        const areaSelect = document.getElementById('areaFilter');
+    // function populateAreas() {
+    //     const selectedState = document.getElementById('stateFilter').value;
+    //     const selectedCity = document.getElementById('cityFilter').value;
+    //     const areaSelect = document.getElementById('areaFilter');
         
-        areaSelect.innerHTML = '<option value="">Choose Area</option>';
+    //     areaSelect.innerHTML = '<option value="">Choose Area</option>';
         
-        if (selectedCity) {
-            const filteredAreas = [...new Set(propertiesData
-                .filter(item => item.State === selectedState && item.City === selectedCity)
-                .map(item => item.Area))].sort();
+    //     if (selectedCity) {
+    //         const filteredAreas = [...new Set(propertiesData
+    //             .filter(item => item.State === selectedState && item.City === selectedCity)
+    //             .map(item => item.Area))].sort();
                 
-            filteredAreas.forEach(area => {
-                const opt = document.createElement('option');
-                opt.value = area;
-                opt.textContent = area;
-                areaSelect.appendChild(opt);
-            });
-        }
-        filterData();
+    //         filteredAreas.forEach(area => {
+    //             const opt = document.createElement('option');
+    //             opt.value = area;
+    //             opt.textContent = area;
+    //             areaSelect.appendChild(opt);
+    //         });
+    //     }
+    //     filterData();
+    // }
+        // 3. Area Logic: Triggered when City changes
+function populateAreas() {
+    const stateVal = document.getElementById('stateFilter').value.trim();
+    const cityVal = document.getElementById('cityFilter').value.trim();
+    const areaSelect = document.getElementById('areaFilter');
+    
+    areaSelect.innerHTML = '<option value="">Choose Area</option>';
+    
+    if (cityVal && stateVal) {
+        const filteredAreas = [...new Set(propertiesData
+            .filter(item => 
+                item.State && String(item.State).trim() === stateVal && 
+                item.City && String(item.City).trim() === cityVal
+            )
+            .map(item => String(item.Area || '').trim())
+        )].filter(v => v !== "").sort();
+            
+        filteredAreas.forEach(area => {
+            const opt = document.createElement('option');
+            opt.value = area;
+            opt.textContent = area;
+            areaSelect.appendChild(opt);
+        });
     }
+    filterData();
+}
 //-------------------------Filters the property----------------------------------
    function filterData() {
     const state = document.getElementById('stateFilter').value;
