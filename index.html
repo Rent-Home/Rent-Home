@@ -135,30 +135,27 @@
 //     populateUnique('listingFilter', 'ListingType');
 //     populateUnique('bhkFilter', 'BHK');
 // }
-        // 1. Initializer: Only populates top-level filters
+       // 1. Initializer: Sets up the first level of filters
 function initFilters() {
     const populateUnique = (selectId, fieldName) => {
         const select = document.getElementById(selectId);
         if (!select) return;
 
-        // Reset to placeholder
         const firstOptionText = select.options[0].text;
         select.innerHTML = `<option value="">${firstOptionText}</option>`;
 
-        // Get unique values, trim spaces, remove empties, and sort
         const uniqueValues = [...new Set(propertiesData.map(item => 
             item[fieldName] ? String(item[fieldName]).trim() : ""
         ))].filter(v => v !== "").sort();
 
         uniqueValues.forEach(val => {
             const opt = document.createElement('option');
-            opt.value = val;
+            opt.value = val; 
             opt.textContent = val;
             select.appendChild(opt);
         });
     };
 
-    // Populate only the independent filters
     populateUnique('stateFilter', 'State');
     populateUnique('typeFilter', 'PropertyType');
     populateUnique('listingFilter', 'ListingType');
@@ -187,19 +184,18 @@ function initFilters() {
     //     }
     //     filterData();
     // }
-        // 2. City Logic: Triggered when State changes
+       // 2. City & Area Logic: Triggers the "Chain" of location selection
 function populateCities() {
-    const stateVal = document.getElementById('stateFilter').value.trim();
+    const stateVal = document.getElementById('stateFilter').value.toLowerCase().trim();
     const citySelect = document.getElementById('cityFilter');
     const areaSelect = document.getElementById('areaFilter');
     
-    // Always reset children when parent changes
     citySelect.innerHTML = '<option value="">Choose City</option>';
     areaSelect.innerHTML = '<option value="">Choose Area</option>';
     
     if (stateVal) {
         const filteredCities = [...new Set(propertiesData
-            .filter(item => item.State && String(item.State).trim() === stateVal)
+            .filter(item => item.State && String(item.State).toLowerCase().trim() === stateVal)
             .map(item => String(item.City || '').trim())
         )].filter(v => v !== "").sort();
             
@@ -236,8 +232,8 @@ function populateCities() {
     // }
         // 3. Area Logic: Triggered when City changes
 function populateAreas() {
-    const stateVal = document.getElementById('stateFilter').value.trim();
-    const cityVal = document.getElementById('cityFilter').value.trim();
+    const stateVal = document.getElementById('stateFilter').value.toLowerCase().trim();
+    const cityVal = document.getElementById('cityFilter').value.toLowerCase().trim();
     const areaSelect = document.getElementById('areaFilter');
     
     areaSelect.innerHTML = '<option value="">Choose Area</option>';
@@ -245,8 +241,8 @@ function populateAreas() {
     if (cityVal && stateVal) {
         const filteredAreas = [...new Set(propertiesData
             .filter(item => 
-                item.State && String(item.State).trim() === stateVal && 
-                item.City && String(item.City).trim() === cityVal
+                item.State && String(item.State).toLowerCase().trim() === stateVal && 
+                item.City && String(item.City).toLowerCase().trim() === cityVal
             )
             .map(item => String(item.Area || '').trim())
         )].filter(v => v !== "").sort();
@@ -261,36 +257,74 @@ function populateAreas() {
     filterData();
 }
 //-------------------------Filters the property----------------------------------
-   function filterData() {
-    const state = document.getElementById('stateFilter').value;
-    const city = document.getElementById('cityFilter').value;
-    const area = document.getElementById('areaFilter').value;
-    const propType = document.getElementById('typeFilter').value;
-    const listType = document.getElementById('listingFilter').value;
-    const bhkFilter = document.getElementById('bhkFilter');
-    const bhkType = bhkFilter.value;
+//    function filterData() {
+//     const state = document.getElementById('stateFilter').value;
+//     const city = document.getElementById('cityFilter').value;
+//     const area = document.getElementById('areaFilter').value;
+//     const propType = document.getElementById('typeFilter').value;
+//     const listType = document.getElementById('listingFilter').value;
+//     const bhkFilter = document.getElementById('bhkFilter');
+//     const bhkType = bhkFilter.value;
+    
+//     const grid = document.getElementById('propertyGrid');
+
+//     // Logic to check if BHK is required (Disabled for Shop/Plot)
+//     const isBhkRequired = !(propType.toLowerCase().trim() === "shop" || propType.toLowerCase().trim() === "plot");
+
+//     // Strict validation: Don't show results until filters are picked
+//     if (!state || !city || !area || !propType || !listType || (isBhkRequired && !bhkType)) {
+//         grid.innerHTML = '<p class="col-span-full text-center text-gray-400 py-12">Please select all filters to view properties.</p>';
+//         return;
+//     }
+
+//     const filtered = propertiesData.filter(item => {
+//         // NEW: Status Check
+//         // Only show if status is exactly "Available" (case-insensitive)
+//         const isAvailable = item.Status && item.Status.toLowerCase().trim() === "available";
+//         if (!isAvailable) return false;
+
+//         // Existing Filters
+//         const matchesLocation = item.State === state && item.City === city && item.Area === area;
+//         const matchesType = item.PropertyType === propType && item.ListingType === listType;
+//         const matchesBhk = isBhkRequired ? (item.BHK === bhkType) : true;
+
+//         return matchesLocation && matchesType && matchesBhk;
+//     });
+    
+//     renderProperties(filtered);
+// }
+        // 3. Filter Data: The core engine that finds the match
+function filterData() {
+    const getVal = (id) => document.getElementById(id).value.toLowerCase().trim();
+    
+    const state = getVal('stateFilter');
+    const city = getVal('cityFilter');
+    const area = getVal('areaFilter');
+    const propType = getVal('typeFilter');
+    const listType = getVal('listingFilter');
+    const bhkType = getVal('bhkFilter');
     
     const grid = document.getElementById('propertyGrid');
 
-    // Logic to check if BHK is required (Disabled for Shop/Plot)
-    const isBhkRequired = !(propType.toLowerCase().trim() === "shop" || propType.toLowerCase().trim() === "plot");
+    // Requirement Check: Ignore BHK check for Shop or Plot
+    const isBhkRequired = !(propType === "shop" || propType === "plot");
 
-    // Strict validation: Don't show results until filters are picked
     if (!state || !city || !area || !propType || !listType || (isBhkRequired && !bhkType)) {
         grid.innerHTML = '<p class="col-span-full text-center text-gray-400 py-12">Please select all filters to view properties.</p>';
         return;
     }
 
     const filtered = propertiesData.filter(item => {
-        // NEW: Status Check
-        // Only show if status is exactly "Available" (case-insensitive)
-        const isAvailable = item.Status && item.Status.toLowerCase().trim() === "available";
+        // Status check
+        const isAvailable = item.Status && String(item.Status).toLowerCase().trim() === "available";
         if (!isAvailable) return false;
 
-        // Existing Filters
-        const matchesLocation = item.State === state && item.City === city && item.Area === area;
-        const matchesType = item.PropertyType === propType && item.ListingType === listType;
-        const matchesBhk = isBhkRequired ? (item.BHK === bhkType) : true;
+        // Case-insensitive & Trimmed comparison helper
+        const match = (itemVal, filterVal) => String(itemVal || '').toLowerCase().trim() === filterVal;
+
+        const matchesLocation = match(item.State, state) && match(item.City, city) && match(item.Area, area);
+        const matchesType = match(item.PropertyType, propType) && match(item.ListingType, listType);
+        const matchesBhk = isBhkRequired ? match(item.BHK, bhkType) : true;
 
         return matchesLocation && matchesType && matchesBhk;
     });
