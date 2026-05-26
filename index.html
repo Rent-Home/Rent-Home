@@ -395,25 +395,25 @@ function filterData() {
 }
  //----------------------------------------------------------------------------------------------------------------------       
         //when shop/plot selected disable the BHK filter
-       function handleTypeChange() {
-    const propType = document.getElementById('typeFilter').value;
-    const bhkFilter = document.getElementById('bhkFilter');
+//        function handleTypeChange() {
+//     const propType = document.getElementById('typeFilter').value;
+//     const bhkFilter = document.getElementById('bhkFilter');
 
-    // Convert to lowercase and trim spaces to avoid case-sensitivity issues
-    const selectedType = propType.toLowerCase().trim();
+//     // Convert to lowercase and trim spaces to avoid case-sensitivity issues
+//     const selectedType = propType.toLowerCase().trim();
 
-    if (selectedType === "shop" || selectedType === "plot") {
-        bhkFilter.value = "N/A"; 
-        bhkFilter.disabled = true;
-        bhkFilter.classList.add('bg-gray-100', 'cursor-not-allowed', 'opacity-50');
-    } else {
-        bhkFilter.disabled = false;
-        if (bhkFilter.value === "N/A") bhkFilter.value = "";
-        bhkFilter.classList.remove('bg-gray-100', 'cursor-not-allowed', 'opacity-50');
-    }
+//     if (selectedType === "shop" || selectedType === "plot") {
+//         bhkFilter.value = "N/A"; 
+//         bhkFilter.disabled = true;
+//         bhkFilter.classList.add('bg-gray-100', 'cursor-not-allowed', 'opacity-50');
+//     } else {
+//         bhkFilter.disabled = false;
+//         if (bhkFilter.value === "N/A") bhkFilter.value = "";
+//         bhkFilter.classList.remove('bg-gray-100', 'cursor-not-allowed', 'opacity-50');
+//     }
 
-    filterData();
-}
+//     filterData();
+// }
 //-------------------------------------------------------------------------------------
 // Helper helper to clear and reset dropdowns cleanly
 function resetDropdown(id, text) {
@@ -510,10 +510,10 @@ function populateBHKs() {
 document.addEventListener('DOMContentLoaded', fetchProperties);
 
 // 2. Filter Trigger - When user changes the last filter
-const areaFilter = document.getElementById('areaFilter');
-if(areaFilter) {
-    areaFilter.addEventListener('change', filterData);
-}
+// const areaFilter = document.getElementById('areaFilter');
+// if(areaFilter) {
+//     areaFilter.addEventListener('change', filterData);
+// }
 
 // 3. Smart Refresh - Only refreshes if they've been away for more than 30 seconds
 let lastFetchTime = Date.now();
