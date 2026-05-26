@@ -56,7 +56,7 @@
 
         <div>
             <label class="block text-[9px] font-bold uppercase text-gray-500 mb-1">Area</label>
-            <select id="areaFilter" class="w-full border border-gray-300 rounded p-1.5 text-xs focus:ring focus:ring-red-200" onchange="filterData()">
+            <select id="areaFilter" class="w-full border border-gray-300 rounded p-1.5 text-xs focus:ring focus:ring-red-200" onchange="populateRequirements()">
                 <option value="">Area</option>
             </select>
         </div>
@@ -67,7 +67,7 @@
 
         <div>
             <label class="block text-[9px] font-bold uppercase text-gray-500 mb-1">Type</label>
-            <select id="typeFilter" class="w-full border border-gray-300 rounded p-1.5 text-xs focus:ring focus:ring-red-200" onchange="handleTypeChange()">
+            <select id="typeFilter" class="w-full border border-gray-300 rounded p-1.5 text-xs focus:ring focus:ring-red-200" onchange="populateBHKs()">
                 <option value="">Type</option>
             </select>
         </div>
@@ -108,23 +108,23 @@
 
   //---------------------------------------------------------------------------------------------
         // This function now pulls ALL filter options from your sheet automatically
+
+       // 1. Initializer: Sets up the first level of filters
 // function initFilters() {
 //     const populateUnique = (selectId, fieldName) => {
 //         const select = document.getElementById(selectId);
 //         if (!select) return;
 
-//         // Clear existing options to prevent duplicates on refresh
 //         const firstOptionText = select.options[0].text;
 //         select.innerHTML = `<option value="">${firstOptionText}</option>`;
 
-//         // Get unique values, remove empty ones, and sort alphabetically
-//         const uniqueValues = [...new Set(propertiesData.map(item => String(item[fieldName] || '').trim()))]
-//             .filter(v => v !== "")
-//             .sort();
+//         const uniqueValues = [...new Set(propertiesData.map(item => 
+//             item[fieldName] ? String(item[fieldName]).trim() : ""
+//         ))].filter(v => v !== "").sort();
 
 //         uniqueValues.forEach(val => {
 //             const opt = document.createElement('option');
-//             opt.value = val;
+//             opt.value = val; 
 //             opt.textContent = val;
 //             select.appendChild(opt);
 //         });
@@ -135,63 +135,66 @@
 //     populateUnique('listingFilter', 'ListingType');
 //     populateUnique('bhkFilter', 'BHK');
 // }
-       // 1. Initializer: Sets up the first level of filters
-function initFilters() {
-    const populateUnique = (selectId, fieldName) => {
-        const select = document.getElementById(selectId);
-        if (!select) return;
 
-        const firstOptionText = select.options[0].text;
-        select.innerHTML = `<option value="">${firstOptionText}</option>`;
+        function initFilters() {
+    const select = document.getElementById('stateFilter');
+    if (!select) return;
 
-        const uniqueValues = [...new Set(propertiesData.map(item => 
-            item[fieldName] ? String(item[fieldName]).trim() : ""
-        ))].filter(v => v !== "").sort();
+    select.innerHTML = `<option value="">State</option>`;
 
-        uniqueValues.forEach(val => {
-            const opt = document.createElement('option');
-            opt.value = val; 
-            opt.textContent = val;
-            select.appendChild(opt);
-        });
-    };
+    const uniqueStates = [...new Set(propertiesData.map(item => 
+        item.State ? String(item.State).trim() : ""
+    ))].filter(v => v !== "").sort();
 
-    populateUnique('stateFilter', 'State');
-    populateUnique('typeFilter', 'PropertyType');
-    populateUnique('listingFilter', 'ListingType');
-    populateUnique('bhkFilter', 'BHK');
+    uniqueStates.forEach(val => {
+        const opt = document.createElement('option');
+        opt.value = val; 
+        opt.textContent = val;
+        select.appendChild(opt);
+    });
+
+    resetDropdown('cityFilter', 'City');
+    resetDropdown('areaFilter', 'Area');
+    resetDropdown('typeFilter', 'Type');
+    resetDropdown('listingFilter', 'Purpose');
+    resetDropdown('bhkFilter', 'BHK');
 }
 //----------------------------------------------------------------------------------
-    // function populateCities() {
-    //     const selectedState = document.getElementById('stateFilter').value;
-    //     const citySelect = document.getElementById('cityFilter');
-    //     const areaSelect = document.getElementById('areaFilter');
-        
-    //     citySelect.innerHTML = '<option value="">Choose City</option>';
-    //     areaSelect.innerHTML = '<option value="">Choose Area</option>';
-        
-    //     if (selectedState) {
-    //         const filteredCities = [...new Set(propertiesData
-    //             .filter(item => item.State === selectedState)
-    //             .map(item => item.City))].sort();
-                
-    //         filteredCities.forEach(city => {
-    //             const opt = document.createElement('option');
-    //             opt.value = city;
-    //             opt.textContent = city;
-    //             citySelect.appendChild(opt);
-    //         });
-    //     }
-    //     filterData();
-    // }
+   
        // 2. City & Area Logic: Triggers the "Chain" of location selection
-function populateCities() {
+// function populateCities() {
+//     const stateVal = document.getElementById('stateFilter').value.toLowerCase().trim();
+//     const citySelect = document.getElementById('cityFilter');
+//     const areaSelect = document.getElementById('areaFilter');
+    
+//     citySelect.innerHTML = '<option value="">Choose City</option>';
+//     areaSelect.innerHTML = '<option value="">Choose Area</option>';
+    
+//     if (stateVal) {
+//         const filteredCities = [...new Set(propertiesData
+//             .filter(item => item.State && String(item.State).toLowerCase().trim() === stateVal)
+//             .map(item => String(item.City || '').trim())
+//         )].filter(v => v !== "").sort();
+            
+//         filteredCities.forEach(city => {
+//             const opt = document.createElement('option');
+//             opt.value = city;
+//             opt.textContent = city;
+//             citySelect.appendChild(opt);
+//         });
+//     }
+//     filterData();
+// }
+
+        function populateCities() {
     const stateVal = document.getElementById('stateFilter').value.toLowerCase().trim();
     const citySelect = document.getElementById('cityFilter');
-    const areaSelect = document.getElementById('areaFilter');
     
-    citySelect.innerHTML = '<option value="">Choose City</option>';
-    areaSelect.innerHTML = '<option value="">Choose Area</option>';
+    resetDropdown('cityFilter', 'Choose City');
+    resetDropdown('areaFilter', 'Choose Area');
+    resetDropdown('typeFilter', 'Type');
+    resetDropdown('listingFilter', 'Purpose');
+    resetDropdown('bhkFilter', 'BHK');
     
     if (stateVal) {
         const filteredCities = [...new Set(propertiesData
@@ -209,34 +212,42 @@ function populateCities() {
     filterData();
 }
 //------------------------------------------------------------------------------
-    // function populateAreas() {
-    //     const selectedState = document.getElementById('stateFilter').value;
-    //     const selectedCity = document.getElementById('cityFilter').value;
-    //     const areaSelect = document.getElementById('areaFilter');
-        
-    //     areaSelect.innerHTML = '<option value="">Choose Area</option>';
-        
-    //     if (selectedCity) {
-    //         const filteredAreas = [...new Set(propertiesData
-    //             .filter(item => item.State === selectedState && item.City === selectedCity)
-    //             .map(item => item.Area))].sort();
-                
-    //         filteredAreas.forEach(area => {
-    //             const opt = document.createElement('option');
-    //             opt.value = area;
-    //             opt.textContent = area;
-    //             areaSelect.appendChild(opt);
-    //         });
-    //     }
-    //     filterData();
-    // }
+    
         // 3. Area Logic: Triggered when City changes
-function populateAreas() {
+// function populateAreas() {
+//     const stateVal = document.getElementById('stateFilter').value.toLowerCase().trim();
+//     const cityVal = document.getElementById('cityFilter').value.toLowerCase().trim();
+//     const areaSelect = document.getElementById('areaFilter');
+    
+//     areaSelect.innerHTML = '<option value="">Choose Area</option>';
+    
+//     if (cityVal && stateVal) {
+//         const filteredAreas = [...new Set(propertiesData
+//             .filter(item => 
+//                 item.State && String(item.State).toLowerCase().trim() === stateVal && 
+//                 item.City && String(item.City).toLowerCase().trim() === cityVal
+//             )
+//             .map(item => String(item.Area || '').trim())
+//         )].filter(v => v !== "").sort();
+            
+//         filteredAreas.forEach(area => {
+//             const opt = document.createElement('option');
+//             opt.value = area;
+//             opt.textContent = area;
+//             areaSelect.appendChild(opt);
+//         });
+//     }
+//     filterData();
+// }
+        function populateAreas() {
     const stateVal = document.getElementById('stateFilter').value.toLowerCase().trim();
     const cityVal = document.getElementById('cityFilter').value.toLowerCase().trim();
     const areaSelect = document.getElementById('areaFilter');
     
-    areaSelect.innerHTML = '<option value="">Choose Area</option>';
+    resetDropdown('areaFilter', 'Choose Area');
+    resetDropdown('typeFilter', 'Type');
+    resetDropdown('listingFilter', 'Purpose');
+    resetDropdown('bhkFilter', 'BHK');
     
     if (cityVal && stateVal) {
         const filteredAreas = [...new Set(propertiesData
@@ -257,42 +268,7 @@ function populateAreas() {
     filterData();
 }
 //-------------------------Filters the property----------------------------------
-//    function filterData() {
-//     const state = document.getElementById('stateFilter').value;
-//     const city = document.getElementById('cityFilter').value;
-//     const area = document.getElementById('areaFilter').value;
-//     const propType = document.getElementById('typeFilter').value;
-//     const listType = document.getElementById('listingFilter').value;
-//     const bhkFilter = document.getElementById('bhkFilter');
-//     const bhkType = bhkFilter.value;
-    
-//     const grid = document.getElementById('propertyGrid');
 
-//     // Logic to check if BHK is required (Disabled for Shop/Plot)
-//     const isBhkRequired = !(propType.toLowerCase().trim() === "shop" || propType.toLowerCase().trim() === "plot");
-
-//     // Strict validation: Don't show results until filters are picked
-//     if (!state || !city || !area || !propType || !listType || (isBhkRequired && !bhkType)) {
-//         grid.innerHTML = '<p class="col-span-full text-center text-gray-400 py-12">Please select all filters to view properties.</p>';
-//         return;
-//     }
-
-//     const filtered = propertiesData.filter(item => {
-//         // NEW: Status Check
-//         // Only show if status is exactly "Available" (case-insensitive)
-//         const isAvailable = item.Status && item.Status.toLowerCase().trim() === "available";
-//         if (!isAvailable) return false;
-
-//         // Existing Filters
-//         const matchesLocation = item.State === state && item.City === city && item.Area === area;
-//         const matchesType = item.PropertyType === propType && item.ListingType === listType;
-//         const matchesBhk = isBhkRequired ? (item.BHK === bhkType) : true;
-
-//         return matchesLocation && matchesType && matchesBhk;
-//     });
-    
-//     renderProperties(filtered);
-// }
         // 3. Filter Data: The core engine that finds the match
 function filterData() {
     const getVal = (id) => document.getElementById(id).value.toLowerCase().trim();
@@ -332,94 +308,7 @@ function filterData() {
     renderProperties(filtered);
 }
 //-------------------------------------------------------------------------------
-//   function renderProperties(items) {
-//     const grid = document.getElementById('propertyGrid');
-//     grid.innerHTML = '';
-    
-//     if (items.length === 0) {
-//         grid.innerHTML = '<p class="col-span-full text-center text-gray-500 py-12">No properties found matching these specific filters.</p>';
-//         return;
-//     }
 
-//     items.forEach(p => {
-//         // 1. YouTube Logic (Kept exactly as per your original)
-//         let videoId = "";
-//         try {
-//             if (p.YouTubeLink.includes('v=')) {
-//                 videoId = p.YouTubeLink.split('v=')[1].split('&')[0];
-//             } else {
-//                 videoId = p.YouTubeLink.split('/').pop();
-//             }
-//         } catch(e) { videoId = ""; }
-
-//         // 2. Price Translator (Handles 50L, 10k, etc. for user ease)
-//         const rawPrice = String(p.Price || "0").toLowerCase().trim();
-//         let displayPrice = "";
-
-//         if (rawPrice.includes('k')) {
-//             displayPrice = parseFloat(rawPrice) + " Thousand";
-//         } else if (rawPrice.includes('l')) {
-//             displayPrice = parseFloat(rawPrice) + " Lakh";
-//         } else if (rawPrice.includes('cr')) {
-//             displayPrice = parseFloat(rawPrice) + " Crore";
-//         } else {
-//             // Formats standard numbers with Indian commas
-//             displayPrice = Number(rawPrice).toLocaleString('en-IN');
-//         }
-
-//         // 3. Logic for Rent vs Buy labels
-//         const isRent = (p.ListingType || '').toLowerCase().trim() === 'rent';
-//         const priceLabel = isRent ? ' / month' : ' (Full Price)';
-//         const serialNo = p.SNo || "N/A"; 
-
-//         const card = document.createElement('div');
-//         card.className = "bg-white rounded-xl shadow-md overflow-hidden flex flex-col border border-gray-100 transform hover:shadow-lg transition duration-300 relative";
-        
-//         card.innerHTML = `
-//             <div class="h-56 bg-gray-200 relative">
-//                 <iframe class="w-full h-full" src="https://www.youtube.com/embed/${videoId}" 
-//                     frameborder="0" allowfullscreen></iframe>
-                
-//                 <div class="absolute top-3 right-3 bg-red-600 text-white text-[10px] font-extrabold px-3 py-1 rounded shadow z-10">
-//                     ₹${displayPrice}${priceLabel}
-//                 </div>
-
-//                 <div class="absolute top-3 left-3 flex flex-col gap-2">
-//                     <span class="bg-black/60 text-white text-[10px] px-2 py-1 rounded backdrop-blur-md uppercase font-bold">
-//                         ${p.ListingType || 'Property'}
-//                     </span>
-//                 </div>
-//             </div>
-
-//             <div class="p-5 flex flex-col flex-grow">
-//                 <div>
-//                     <div class="flex justify-between items-start">
-//                         <span class="text-[10px] text-red-600 font-bold uppercase tracking-wider">
-//                             ${p.Area}, ${p.City} <span class="text-gray-400 font-normal">#${serialNo}</span>
-//                         </span>
-//                         <span class="text-[10px] font-bold bg-gray-100 px-2 py-1 rounded">
-//                             ${p.BHK || ''} ${p.PropertyType || ''}
-//                         </span>
-//                     </div>
-                    
-//                     <h2 class="font-black text-2xl text-gray-900 mt-1 leading-tight">Real Estate</h2>
-                    
-//                     <p class="text-sm text-gray-600 mt-2 font-medium"> 
-//                         Service Fee: <span class="font-extrabold text-green-600">₹2,000 only</span>
-//                     </p>
-//                 </div>
-
-//                 <div class="mt-auto pt-5">
-//                     <a href="https://wa.me/91${p.ContactNumber}?text=Hi, I am interested in Property ID #${serialNo} (${p.BHK} ${p.PropertyType} in ${p.Area}) listed at ₹${displayPrice}." 
-//                         target="_blank" class="block text-center w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200 shadow-sm">
-//                         <i class="fab fa-whatsapp mr-1"></i> Contact Me
-//                     </a>
-//                 </div>
-//             </div>
-//         `;
-//         grid.appendChild(card);
-//     });
-// }
     function renderProperties(items) {
     const grid = document.getElementById('propertyGrid');
     grid.innerHTML = '';
@@ -525,6 +414,96 @@ function filterData() {
 
     filterData();
 }
+//-------------------------------------------------------------------------------------
+// Helper helper to clear and reset dropdowns cleanly
+function resetDropdown(id, text) {
+    const element = document.getElementById(id);
+    if(element) element.innerHTML = `<option value="">${text}</option>`;
+}
+//-------------------------------------------------------------------------------------
+        // 4. NEW FUNCTION: Filters "Type" and "Purpose" based on the selected location
+function populateRequirements() {
+    const stateVal = document.getElementById('stateFilter').value.toLowerCase().trim();
+    const cityVal = document.getElementById('cityFilter').value.toLowerCase().trim();
+    const areaVal = document.getElementById('areaFilter').value.toLowerCase().trim();
+    
+    const typeSelect = document.getElementById('typeFilter');
+    const listingSelect = document.getElementById('listingFilter');
+    
+    resetDropdown('typeFilter', 'Choose Type');
+    resetDropdown('listingFilter', 'Choose Purpose');
+    resetDropdown('bhkFilter', 'BHK');
+
+    if (stateVal && cityVal && areaVal) {
+        // Get only records matching this selected Area
+        const localizedRecords = propertiesData.filter(item => 
+            String(item.State || '').toLowerCase().trim() === stateVal &&
+            String(item.City || '').toLowerCase().trim() === cityVal &&
+            String(item.Area || '').toLowerCase().trim() === areaVal
+        );
+
+        // Dynamically populate matching property types
+        const uniqueTypes = [...new Set(localizedRecords.map(item => String(item.PropertyType || '').trim()))].filter(v => v !== "").sort();
+        uniqueTypes.forEach(t => {
+            const opt = document.createElement('option');
+            opt.value = t;
+            opt.textContent = t;
+            typeSelect.appendChild(opt);
+        });
+
+        // Dynamically populate matching Listing types
+        const uniqueListings = [...new Set(localizedRecords.map(item => String(item.ListingType || '').trim()))].filter(v => v !== "").sort();
+        uniqueListings.forEach(l => {
+            const opt = document.createElement('option');
+            opt.value = l;
+            opt.textContent = l;
+            listingSelect.appendChild(opt);
+        });
+    }
+    filterData();
+}
+//-------------------------------------------------------------------------------------
+        // 5. NEW FUNCTION: Filters "BHK" choices based on both Area + Type
+function populateBHKs() {
+    const stateVal = document.getElementById('stateFilter').value.toLowerCase().trim();
+    const cityVal = document.getElementById('cityFilter').value.toLowerCase().trim();
+    const areaVal = document.getElementById('areaFilter').value.toLowerCase().trim();
+    const typeVal = document.getElementById('typeFilter').value.toLowerCase().trim();
+    
+    const bhkSelect = document.getElementById('bhkFilter');
+    resetDropdown('bhkFilter', 'Choose BHK');
+
+    // Handle Shop / Plot exceptions
+    if (typeVal === "shop" || typeVal === "plot") {
+        bhkSelect.value = "N/A"; 
+        bhkSelect.disabled = true;
+        bhkSelect.classList.add('bg-gray-100', 'cursor-not-allowed', 'opacity-50');
+        filterData();
+        return;
+    } else {
+        bhkSelect.disabled = false;
+        bhkSelect.classList.remove('bg-gray-100', 'cursor-not-allowed', 'opacity-50');
+    }
+
+    if (stateVal && cityVal && areaVal && typeVal) {
+        const localizedRecords = propertiesData.filter(item => 
+            String(item.State || '').toLowerCase().trim() === stateVal &&
+            String(item.City || '').toLowerCase().trim() === cityVal &&
+            String(item.Area || '').toLowerCase().trim() === areaVal &&
+            String(item.PropertyType || '').toLowerCase().trim() === typeVal
+        );
+
+        const uniqueBHKs = [...new Set(localizedRecords.map(item => String(item.BHK || '').trim()))].filter(v => v !== "").sort();
+        uniqueBHKs.forEach(b => {
+            const opt = document.createElement('option');
+            opt.value = b;
+            opt.textContent = b;
+            bhkSelect.appendChild(opt);
+        });
+    }
+    filterData();
+}
+//-------------------------------------------------------------------------------------        
 
         //Refresh page logic
         // 1. Initial Load when the page first opens
