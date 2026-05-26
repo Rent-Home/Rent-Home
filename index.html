@@ -35,7 +35,7 @@
     </section>
 
     
-<<div class="bg-white p-4 rounded-lg shadow-md mb-8 grid grid-cols-2 gap-4">
+<div class="bg-white p-4 rounded-lg shadow-md mb-8 grid grid-cols-2 gap-4">
     
     <div class="flex flex-col gap-4 border-r pr-4 border-gray-100">
         <h3 class="text-[10px] font-black text-red-600 mb-1 tracking-widest uppercase">Location</h3>
@@ -422,6 +422,7 @@ function resetDropdown(id, text) {
 }
 //-------------------------------------------------------------------------------------
         // 4. NEW FUNCTION: Filters "Type" and "Purpose" based on the selected location
+
 function populateRequirements() {
     const stateVal = document.getElementById('stateFilter').value.toLowerCase().trim();
     const cityVal = document.getElementById('cityFilter').value.toLowerCase().trim();
@@ -435,15 +436,21 @@ function populateRequirements() {
     resetDropdown('bhkFilter', 'BHK');
 
     if (stateVal && cityVal && areaVal) {
-        // Get only records matching this selected Area
-        const localizedRecords = propertiesData.filter(item => 
-            String(item.State || '').toLowerCase().trim() === stateVal &&
-            String(item.City || '').toLowerCase().trim() === cityVal &&
-            String(item.Area || '').toLowerCase().trim() === areaVal
-        );
+        const localizedRecords = propertiesData.filter(item => {
+            const s = item.State || item.state || '';
+            const c = item.City || item.city || '';
+            const a = item.Area || item.area || '';
+            return String(s).toLowerCase().trim() === stateVal &&
+                   String(c).toLowerCase().trim() === cityVal &&
+                   String(a).toLowerCase().trim() === areaVal;
+        });
 
-        // Dynamically populate matching property types
-        const uniqueTypes = [...new Set(localizedRecords.map(item => String(item.PropertyType || '').trim()))].filter(v => v !== "").sort();
+        // Safe extraction regardless of key casing
+        const uniqueTypes = [...new Set(localizedRecords.map(item => {
+            const t = item.PropertyType || item.propertytype || item.Type || item.type || '';
+            return String(t).trim();
+        }))].filter(v => v !== "").sort();
+
         uniqueTypes.forEach(t => {
             const opt = document.createElement('option');
             opt.value = t;
@@ -451,8 +458,11 @@ function populateRequirements() {
             typeSelect.appendChild(opt);
         });
 
-        // Dynamically populate matching Listing types
-        const uniqueListings = [...new Set(localizedRecords.map(item => String(item.ListingType || '').trim()))].filter(v => v !== "").sort();
+        const uniqueListings = [...new Set(localizedRecords.map(item => {
+            const l = item.ListingType || item.listingtype || item.Purpose || item.purpose || '';
+            return String(l).trim();
+        }))].filter(v => v !== "").sort();
+
         uniqueListings.forEach(l => {
             const opt = document.createElement('option');
             opt.value = l;
@@ -464,6 +474,7 @@ function populateRequirements() {
 }
 //-------------------------------------------------------------------------------------
         // 5. NEW FUNCTION: Filters "BHK" choices based on both Area + Type
+
 function populateBHKs() {
     const stateVal = document.getElementById('stateFilter').value.toLowerCase().trim();
     const cityVal = document.getElementById('cityFilter').value.toLowerCase().trim();
@@ -473,7 +484,6 @@ function populateBHKs() {
     const bhkSelect = document.getElementById('bhkFilter');
     resetDropdown('bhkFilter', 'Choose BHK');
 
-    // Handle Shop / Plot exceptions
     if (typeVal === "shop" || typeVal === "plot") {
         bhkSelect.value = "N/A"; 
         bhkSelect.disabled = true;
@@ -486,14 +496,22 @@ function populateBHKs() {
     }
 
     if (stateVal && cityVal && areaVal && typeVal) {
-        const localizedRecords = propertiesData.filter(item => 
-            String(item.State || '').toLowerCase().trim() === stateVal &&
-            String(item.City || '').toLowerCase().trim() === cityVal &&
-            String(item.Area || '').toLowerCase().trim() === areaVal &&
-            String(item.PropertyType || '').toLowerCase().trim() === typeVal
-        );
+        const localizedRecords = propertiesData.filter(item => {
+            const s = item.State || item.state || '';
+            const c = item.City || item.city || '';
+            const a = item.Area || item.area || '';
+            const t = item.PropertyType || item.propertytype || item.Type || item.type || '';
+            return String(s).toLowerCase().trim() === stateVal &&
+                   String(c).toLowerCase().trim() === cityVal &&
+                   String(a).toLowerCase().trim() === areaVal &&
+                   String(t).toLowerCase().trim() === typeVal;
+        });
 
-        const uniqueBHKs = [...new Set(localizedRecords.map(item => String(item.BHK || '').trim()))].filter(v => v !== "").sort();
+        const uniqueBHKs = [...new Set(localizedRecords.map(item => {
+            const b = item.BHK || item.bhk || '';
+            return String(b).trim();
+        }))].filter(v => v !== "").sort();
+
         uniqueBHKs.forEach(b => {
             const opt = document.createElement('option');
             opt.value = b;
